@@ -46,6 +46,7 @@ const base_url_img = 'https://poring.world/sprites/';
       const filePath = `${__dirname}/images/${fileName}.png`;
 
       download_image(img, filePath).then(() => {
+        console.log(`[${(new Date()).toLocaleString()}] ${data.name}: ${Number(data.lastRecord.price).toLocaleString()}`);
         growl.icon(filePath).notify(data.name, value);
       });
     });
