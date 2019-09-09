@@ -23,7 +23,7 @@ const base_url_img = 'https://poring.world/sprites/';
         return 1;
       }
       data = data[0];
-      let value = 'Ƶ ' + Number(data.lastRecord.price).toLocaleString();
+      let value = 'Ƶ ' + Number(data.lastRecord.price).toLocaleString() + ` (${Math.round(data.priceChange1d)}%)`;
       if (
         data.lastRecord.snapEnd > 0 &&
         new Date(data.lastRecord.snapEnd * 1000).getTime() >
