@@ -1,28 +1,24 @@
 const growl = require('notify-send');
 const axios = require('axios');
-const numeral = require('numeral');
 const fs = require('fs');
 
 const base_url_api = 'https://poring.world/api/search';
 const base_url_img = 'https://poring.world/sprites/';
+
 (() => {
   const item = process.argv[2];
   axios
     .get(base_url_api, {
       params: { order: 'popularity', inStock: 1, q: item.toLowerCase() }
     })
-    .then(resp => {
-      const value = numeral(resp.data[0].lastRecord.price).format('$0,0');
-      const img = `${base_url_img}${resp.data[0].icon}.png`;
-      const fileName =
-        item
-          .split(' ')
-          .join('_')
-          .toLowerCase() + '.png';
-      const filePath = `${__dirname}/${fileName}`;
+    .then(({ data }) => {
+      const value = 'Ƶ '+Number(data[0].lastRecord.price).toLocaleString();
+      const img = `${base_url_img}${data[0].icon}.png`;
+      const fileName = `${data[0].name}`.replace(/[^0-9a-zA-Z]/g, '_')+'.png';
+      const filePath = `${__dirname}/images/${fileName}`;
 
-      download_image(img, fileName).then(() => {
-        growl.icon(filePath).notify(item, value);
+      download_image(img, filePath).then(() => {
+        growl.icon(filePath).notify(data[0].name, value);
       });
     });
 })();
