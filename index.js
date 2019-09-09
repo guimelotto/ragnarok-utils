@@ -32,6 +32,8 @@ const base_url_img = 'https://poring.world/sprites/';
         value += `\n<i>(in snap until ${new Date(
           data.lastRecord.snapEnd * 1000
         ).toLocaleString()})</i>`;
+
+        value += `\n[<b>Stock</b>: ${data.lastRecord.stock} | <b>Buyers</b>: ${data.lastRecord.snapBuyers}]`
       }
       const img = `${base_url_img}${data.icon}.png`;
 
