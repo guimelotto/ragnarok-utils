@@ -12,13 +12,23 @@ const base_url_img = 'https://poring.world/sprites/';
       params: { order: 'popularity', inStock: 1, q: item.toLowerCase() }
     })
     .then(({ data }) => {
-      const value = 'Ƶ '+Number(data[0].lastRecord.price).toLocaleString();
-      const img = `${base_url_img}${data[0].icon}.png`;
-      const fileName = `${data[0].name}`.replace(/[^0-9a-zA-Z]/g, '_')+'.png';
-      const filePath = `${__dirname}/images/${fileName}`;
+      data = data[0];
+      let value = 'Ƶ ' + Number(data.lastRecord.price).toLocaleString();
+      if (data.lastRecord.snapEnd > 0 && new Date(data.lastRecord.snapEnd*1000).getTime() > new Date().getTime()) {
+        value += `\n<i>(in snap until ${new Date(data.lastRecord.snapEnd*1000).toLocaleString()})</i>`
+      }
+      const img = `${base_url_img}${data.icon}.png`;
+
+      const fileName = data.name
+        .replace(/\+\d+|\[\d+\]|\(.+\)|\<.+\>/g, ' ')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '_');
+
+      const filePath = `${__dirname}/images/${fileName}.png`;
 
       download_image(img, filePath).then(() => {
-        growl.icon(filePath).notify(data[0].name, value);
+        growl.icon(filePath).notify(data.name, value);
       });
     });
 })();
