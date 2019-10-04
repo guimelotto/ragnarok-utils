@@ -10,37 +10,65 @@ if (!item) {
   return 1;
 }
 
-fetchItem(item).then(async r => {
-  if (!r.data || !r.data[0]) {
-    growl.icon('error').notify('No data received');
-    return 1;
+main(item);
+
+function checkSnap(item) {
+  let value = '';
+
+  if ( item.lastRecord.snapEnd > 0 ) {
+    if ( item.lastRecord.snapEnd > new Date().getTime() / 1000 ) {
+      value += `\n<i>(in snap until ${new Date(
+        item.lastRecord.snapEnd * 1000
+      ).toLocaleString()})</i>`;
+
+      value += `\n[<b>Stock</b>: ${item.lastRecord.stock} | <b>Buyers</b>: ${item.lastRecord.snapBuyers}]`
+    } else {
+      return false;
+    }
   }
 
-  let data = r.data[0];
+  return value;
+}
 
-  let value = 'Ƶ ' + Number(data.lastRecord.price).toLocaleString() + ` (${Math.round(data.priceChange1d)}%)`;
+function main(item, data_index = 0, qtd = 2) {
+  fetchItem(item).then(async r => {
+    if (!r.data || !r.data[data_index]) {
+      growl.icon('error').notify('No data received');
+      return 1;
+    }
 
-  if (
-    data.lastRecord.snapEnd > 0 &&
-    data.lastRecord.snapEnd > new Date().getTime() / 1000
-  ) {
-    value += `\n<i>(in snap until ${new Date(
-      data.lastRecord.snapEnd * 1000
-    ).toLocaleString()})</i>`;
+    for (let i = 0; i <= qtd; i++) {
+      let data = r.data[data_index + i];
+      if (!data) {
+        continue;
+      }
+      let value = 'Ƶ ' + Number(data.lastRecord.price).toLocaleString() + ` (${Math.round(data.priceChange1d)}%)`;
 
-    value += `\n[<b>Stock</b>: ${data.lastRecord.stock} | <b>Buyers</b>: ${data.lastRecord.snapBuyers}]`
-  }
+      const snap = checkSnap(data);
+      if (snap === false) {
+        if (data_index === 0) {
+          main(item, data_index += 1);
+          return 0;
+        } else {
+          continue;
+        }
+      }
 
-  const fileName = data.name
-    .replace(/\+\d+|\[\d+\]|\(.+\)|\<.+\>/g, ' ')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '_');
+      value += snap;
 
-  const filePath = `${__dirname}/images/${fileName}.png`;
+      const fileName = data.name
+      .replace(/\+\d+|\[\d+\]|\(.+\)|\<.+\>/g, ' ')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '_');
 
-  await downloadImage(`${data.icon}.png`, filePath);
+      const filePath = `${__dirname}/images/${fileName}.png`;
 
-  console.log(`[${(new Date()).toLocaleString()}] ${data.name}: ${Number(data.lastRecord.price).toLocaleString()}`);
-  growl.icon(filePath).notify(data.name, value);
-});
+      await downloadImage(`${data.icon}.png`, filePath);
+
+      console.log(`[${(new Date()).toLocaleString()}] ${data.name}: ${Number(data.lastRecord.price).toLocaleString()}`);
+      growl.icon(filePath).notify(data.name, value);
+    }
+
+  });
+}
